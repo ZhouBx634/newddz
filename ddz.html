@@ -1,0 +1,1784 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d5a48">
+  <title>欢乐斗地主</title>
+  <style>
+    :root {
+      --felt: #0d5a48;
+      --felt-deep: #063d33;
+      --felt-line: rgba(229, 217, 166, 0.42);
+      --paper: #fffdf7;
+      --ink: #16251f;
+      --muted: #c9dfd2;
+      --gold: #ffd86b;
+      --red: #d94147;
+      --black: #20262b;
+      --danger: #f17b72;
+      --shadow: rgba(0, 25, 18, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: #f7fbf8;
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 14% 9%, rgba(255, 228, 131, 0.12), transparent 23rem),
+        radial-gradient(circle at 90% 86%, rgba(64, 193, 150, 0.16), transparent 22rem),
+        #052e26;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .game-shell {
+      width: min(1180px, calc(100% - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 18px 0 28px;
+    }
+
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid rgba(255, 216, 107, 0.74);
+      border-radius: 8px;
+      color: var(--gold);
+      font-family: Georgia, serif;
+      font-size: 24px;
+      font-weight: 700;
+      background: rgba(3, 47, 38, 0.72);
+      box-shadow: inset 0 0 18px rgba(255, 216, 107, 0.12);
+    }
+
+    h1 {
+      margin: 0;
+      color: #fff8d9;
+      font-family: Georgia, "Microsoft YaHei", serif;
+      font-size: 23px;
+      letter-spacing: 2px;
+    }
+
+    .brand-subtitle {
+      margin: 3px 0 0;
+      color: #bad5c7;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    .scoreboard {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .score-item {
+      min-width: 70px;
+      padding: 6px 10px 5px;
+      border-left: 1px solid rgba(214, 239, 226, 0.24);
+      text-align: right;
+    }
+
+    .score-label {
+      display: block;
+      color: #b8d7c8;
+      font-size: 11px;
+    }
+
+    .score-value {
+      display: block;
+      margin-top: 2px;
+      color: #fff6cf;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .table {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      min-height: 678px;
+      border: 1px solid var(--felt-line);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.025) 50%, transparent 50.2%),
+        linear-gradient(0deg, transparent 49.8%, rgba(255, 255, 255, 0.025) 50%, transparent 50.2%),
+        radial-gradient(ellipse at center, #14715a 0%, var(--felt) 52%, var(--felt-deep) 100%);
+      box-shadow: 0 24px 55px var(--shadow), inset 0 0 80px rgba(0, 0, 0, 0.24);
+    }
+
+    .table::before {
+      position: absolute;
+      z-index: -1;
+      inset: 18px;
+      border: 1px solid rgba(240, 230, 189, 0.2);
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .table::after {
+      position: absolute;
+      z-index: -1;
+      inset: 30% 18%;
+      border: 1px solid rgba(255, 223, 126, 0.13);
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .seat {
+      position: absolute;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 148px;
+    }
+
+    .seat-left {
+      top: 52px;
+      left: 30px;
+    }
+
+    .seat-right {
+      top: 52px;
+      right: 30px;
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    .avatar {
+      display: grid;
+      width: 40px;
+      height: 40px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 2px solid rgba(255, 250, 218, 0.7);
+      border-radius: 50%;
+      color: #fff8d9;
+      font-family: Georgia, serif;
+      font-size: 18px;
+      background: #6e3f3c;
+      box-shadow: 0 3px 7px rgba(0, 0, 0, 0.22);
+    }
+
+    .seat-right .avatar {
+      background: #305a70;
+    }
+
+    .seat-me .avatar {
+      background: #815b2f;
+    }
+
+    .seat-name {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .seat-right .seat-name {
+      justify-content: flex-end;
+    }
+
+    .seat-meta {
+      margin-top: 3px;
+      color: #bbd6c8;
+      font-size: 12px;
+    }
+
+    .role-tag {
+      display: inline-block;
+      padding: 1px 5px;
+      border: 1px solid rgba(255, 216, 107, 0.8);
+      border-radius: 3px;
+      color: #ffe59c;
+      font-size: 10px;
+      font-weight: 400;
+    }
+
+    .turn-ring {
+      display: none;
+      position: absolute;
+      inset: -5px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(255, 216, 107, 0.13);
+    }
+
+    .seat.is-turn .turn-ring {
+      display: block;
+    }
+
+    .opponent-cards {
+      position: absolute;
+      top: 118px;
+      z-index: 1;
+      display: flex;
+      height: 56px;
+    }
+
+    .opponent-cards.left {
+      left: 45px;
+    }
+
+    .opponent-cards.right {
+      right: 45px;
+      flex-direction: row-reverse;
+    }
+
+    .card-back {
+      width: 25px;
+      height: 38px;
+      margin-left: -17px;
+      border: 1px solid #f2dfaf;
+      border-radius: 3px;
+      background:
+        linear-gradient(45deg, transparent 45%, rgba(255, 236, 169, 0.5) 46%, rgba(255, 236, 169, 0.5) 54%, transparent 55%),
+        linear-gradient(-45deg, transparent 45%, rgba(255, 236, 169, 0.5) 46%, rgba(255, 236, 169, 0.5) 54%, transparent 55%),
+        #9b3034;
+      box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .opponent-cards .card-back:first-child {
+      margin-left: 0;
+    }
+
+    .bottom-cards {
+      position: absolute;
+      top: 31px;
+      left: 50%;
+      z-index: 2;
+      display: flex;
+      min-height: 58px;
+      transform: translateX(-50%);
+    }
+
+    .bottom-card-wrap {
+      margin-left: -20px;
+    }
+
+    .bottom-card-wrap:first-child {
+      margin-left: 0;
+    }
+
+    .bottom-card-wrap .playing-card {
+      transform: scale(0.56);
+      transform-origin: top left;
+    }
+
+    .bottom-card-wrap {
+      width: 38px;
+      height: 57px;
+    }
+
+    .bottom-card-wrap.is-hidden .playing-card {
+      display: none;
+    }
+
+    .bottom-card-wrap.is-hidden::before {
+      display: block;
+      width: 36px;
+      height: 54px;
+      border: 1px solid #f2dfaf;
+      border-radius: 3px;
+      background:
+        linear-gradient(45deg, transparent 45%, rgba(255, 236, 169, 0.48) 46%, rgba(255, 236, 169, 0.48) 54%, transparent 55%),
+        linear-gradient(-45deg, transparent 45%, rgba(255, 236, 169, 0.48) 46%, rgba(255, 236, 169, 0.48) 54%, transparent 55%),
+        #9b3034;
+      content: "";
+      transform: scale(0.56);
+      transform-origin: top left;
+    }
+
+    .center-stage {
+      position: absolute;
+      top: 178px;
+      left: 50%;
+      width: min(470px, calc(100% - 260px));
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .round-status {
+      min-height: 30px;
+      margin: 0 auto 10px;
+      color: #f9f5de;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 30px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    .round-status.is-alert {
+      color: #ffe099;
+    }
+
+    .play-zone {
+      position: relative;
+      display: flex;
+      min-height: 122px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .play-zone::before {
+      position: absolute;
+      inset: 4px 10%;
+      border: 1px dashed rgba(250, 244, 206, 0.2);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .last-play {
+      position: relative;
+      display: flex;
+      min-height: 104px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 26px;
+    }
+
+    .played-card {
+      width: 48px;
+      height: 70px;
+      margin-left: -27px;
+      padding: 5px;
+      border: 1px solid #d8d1bb;
+      border-radius: 5px;
+      color: var(--black);
+      text-align: left;
+      background: var(--paper);
+      box-shadow: 1px 4px 7px rgba(0, 25, 18, 0.3);
+    }
+
+    .played-card:first-child {
+      margin-left: 0;
+    }
+
+    .played-card.is-red {
+      color: var(--red);
+    }
+
+    .played-card .rank {
+      display: block;
+      font-family: Georgia, serif;
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 0.92;
+    }
+
+    .played-card .suit {
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .played-card.joker .rank {
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .played-card.joker .suit {
+      font-family: Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .play-caption {
+      position: absolute;
+      right: 4px;
+      bottom: -2px;
+      color: #cde3d7;
+      font-size: 11px;
+    }
+
+    .trick-notice {
+      position: absolute;
+      top: 138px;
+      left: 50%;
+      min-height: 21px;
+      transform: translateX(-50%);
+      color: #c4dfd0;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .my-seat {
+      position: absolute;
+      right: 30px;
+      bottom: 206px;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .my-seat .seat-meta {
+      color: #c8decf;
+    }
+
+    .action-panel {
+      position: absolute;
+      right: 30px;
+      bottom: 137px;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .action-panel button,
+    .new-game {
+      min-height: 36px;
+      padding: 7px 13px;
+      border: 1px solid rgba(237, 243, 220, 0.38);
+      border-radius: 4px;
+      color: #edf6ef;
+      cursor: pointer;
+      background: rgba(2, 47, 38, 0.58);
+      transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+    }
+
+    .action-panel button:hover:not(:disabled),
+    .new-game:hover:not(:disabled) {
+      border-color: rgba(255, 223, 126, 0.9);
+      background: rgba(35, 110, 86, 0.76);
+      transform: translateY(-1px);
+    }
+
+    .action-panel button:disabled,
+    .new-game:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+    }
+
+    .action-panel .primary {
+      border-color: #f4c959;
+      color: #17362c;
+      font-weight: 700;
+      background: var(--gold);
+    }
+
+    .action-panel .primary:hover:not(:disabled) {
+      border-color: #ffefb5;
+      background: #ffe494;
+    }
+
+    .action-panel .danger {
+      border-color: rgba(255, 180, 170, 0.55);
+      color: #ffe2de;
+    }
+
+    .hand-area {
+      position: absolute;
+      right: 18px;
+      bottom: 17px;
+      left: 18px;
+      z-index: 2;
+      min-height: 125px;
+      padding: 20px 16px 10px;
+      border-top: 1px solid rgba(235, 237, 211, 0.25);
+      background: linear-gradient(0deg, rgba(2, 49, 39, 0.65), transparent);
+    }
+
+    .hand-label {
+      position: absolute;
+      top: 4px;
+      left: 5px;
+      color: #bcd7c8;
+      font-size: 12px;
+    }
+
+    .hand-label strong {
+      margin-left: 4px;
+      color: #fff4cb;
+      font-weight: 500;
+    }
+
+    .hand {
+      display: flex;
+      min-height: 99px;
+      align-items: flex-end;
+      justify-content: center;
+      padding-right: 2px;
+    }
+
+    .card-button {
+      position: relative;
+      width: 64px;
+      height: 92px;
+      flex: 0 0 auto;
+      margin-left: -26px;
+      padding: 0;
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+      background: transparent;
+      filter: drop-shadow(1px 3px 2px rgba(0, 21, 14, 0.36));
+      transition: transform 140ms ease, filter 140ms ease;
+    }
+
+    .card-button:first-child {
+      margin-left: 0;
+    }
+
+    .card-button:hover:not(:disabled) {
+      transform: translateY(-8px);
+      z-index: 1;
+      filter: drop-shadow(1px 7px 5px rgba(0, 21, 14, 0.43));
+    }
+
+    .card-button.is-selected {
+      transform: translateY(-19px);
+      z-index: 4;
+      filter: drop-shadow(0 7px 5px rgba(0, 21, 14, 0.45));
+    }
+
+    .card-button:disabled {
+      cursor: default;
+    }
+
+    .playing-card {
+      position: relative;
+      display: block;
+      width: 64px;
+      height: 92px;
+      overflow: hidden;
+      border: 1px solid #d6cfb8;
+      border-radius: 6px;
+      color: var(--black);
+      text-align: left;
+      background:
+        linear-gradient(135deg, rgba(252, 250, 238, 0.78), transparent 45%),
+        var(--paper);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72);
+    }
+
+    .playing-card.is-red {
+      color: var(--red);
+    }
+
+    .playing-card .corner {
+      position: absolute;
+      top: 6px;
+      left: 7px;
+      font-family: Georgia, serif;
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 0.78;
+    }
+
+    .playing-card .corner-suit {
+      display: block;
+      margin-top: 5px;
+      font-size: 17px;
+      font-weight: 400;
+    }
+
+    .playing-card .large-suit {
+      position: absolute;
+      right: 8px;
+      bottom: 3px;
+      font-family: Georgia, serif;
+      font-size: 39px;
+      font-weight: 400;
+      line-height: 1;
+      opacity: 0.93;
+    }
+
+    .playing-card.joker .corner {
+      top: 7px;
+      font-size: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .playing-card.joker .large-suit {
+      right: 6px;
+      bottom: 8px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .playing-card.joker.small {
+      color: #34556a;
+    }
+
+    .playing-card.joker.big {
+      color: #c54544;
+    }
+
+    .new-game {
+      margin-left: 10px;
+    }
+
+    .bidding {
+      position: absolute;
+      top: 341px;
+      left: 50%;
+      z-index: 5;
+      display: none;
+      width: min(360px, calc(100% - 36px));
+      padding: 16px;
+      border: 1px solid rgba(255, 225, 132, 0.68);
+      border-radius: 7px;
+      transform: translateX(-50%);
+      text-align: center;
+      background: rgba(4, 65, 51, 0.94);
+      box-shadow: 0 12px 30px rgba(0, 20, 14, 0.35);
+    }
+
+    .bidding.is-visible {
+      display: block;
+    }
+
+    .bidding-title {
+      margin: 0;
+      color: #fff2bd;
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .bidding-copy {
+      margin: 7px 0 14px;
+      color: #cee3d8;
+      font-size: 13px;
+    }
+
+    .bid-actions {
+      display: flex;
+      justify-content: center;
+      gap: 9px;
+    }
+
+    .bid-actions button {
+      min-width: 94px;
+      padding: 8px 12px;
+      border: 1px solid rgba(247, 241, 214, 0.46);
+      border-radius: 4px;
+      color: #f7fbf8;
+      cursor: pointer;
+      background: rgba(3, 43, 34, 0.56);
+    }
+
+    .bid-actions button:last-child {
+      border-color: #f3c959;
+      color: #193b30;
+      font-weight: 700;
+      background: #ffda70;
+    }
+
+    .bid-actions button:hover {
+      transform: translateY(-1px);
+    }
+
+    .result-dialog {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 8;
+      display: none;
+      width: min(340px, calc(100% - 40px));
+      padding: 24px;
+      border: 1px solid rgba(255, 226, 135, 0.7);
+      border-radius: 8px;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 224, 119, 0.18), transparent 56%),
+        #0a5745;
+      box-shadow: 0 20px 60px rgba(0, 16, 10, 0.52);
+    }
+
+    .result-dialog.is-visible {
+      display: block;
+    }
+
+    .result-title {
+      margin: 0;
+      color: #fff0ba;
+      font-family: Georgia, "Microsoft YaHei", serif;
+      font-size: 26px;
+      letter-spacing: 1px;
+    }
+
+    .result-copy {
+      margin: 10px 0 18px;
+      color: #d4e7dd;
+      font-size: 14px;
+    }
+
+    .result-dialog button {
+      padding: 9px 22px;
+      border: 1px solid #ffea9a;
+      border-radius: 4px;
+      color: #1d3e31;
+      cursor: pointer;
+      font-weight: 700;
+      background: #ffdc73;
+    }
+
+    @media (max-width: 720px) {
+      .game-shell {
+        width: min(100% - 18px, 620px);
+        padding-top: 10px;
+      }
+
+      .game-header {
+        align-items: flex-start;
+      }
+
+      .score-item {
+        min-width: 50px;
+        padding-right: 0;
+      }
+
+      .score-value {
+        font-size: 17px;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+        font-size: 21px;
+      }
+
+      h1 {
+        font-size: 19px;
+      }
+
+      .brand-subtitle {
+        font-size: 10px;
+      }
+
+      .table {
+        min-height: 650px;
+      }
+
+      .table::before {
+        inset: 12px;
+      }
+
+      .seat {
+        min-width: auto;
+      }
+
+      .seat-left {
+        top: 30px;
+        left: 18px;
+      }
+
+      .seat-right {
+        top: 30px;
+        right: 18px;
+      }
+
+      .seat-name {
+        font-size: 12px;
+      }
+
+      .seat-meta {
+        font-size: 10px;
+      }
+
+      .seat .avatar {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+      }
+
+      .opponent-cards {
+        top: 83px;
+      }
+
+      .opponent-cards.left {
+        left: 24px;
+      }
+
+      .opponent-cards.right {
+        right: 24px;
+      }
+
+      .opponent-cards .card-back:nth-child(n + 10) {
+        display: none;
+      }
+
+      .center-stage {
+        top: 143px;
+        width: calc(100% - 24px);
+      }
+
+      .my-seat {
+        right: 16px;
+        bottom: 195px;
+      }
+
+      .action-panel {
+        right: 13px;
+        bottom: 131px;
+        gap: 5px;
+      }
+
+      .action-panel button {
+        min-height: 34px;
+        padding: 7px 8px;
+        font-size: 13px;
+      }
+
+      .hand-area {
+        right: 9px;
+        bottom: 10px;
+        left: 9px;
+      }
+
+      .card-button {
+        width: 51px;
+        height: 76px;
+        margin-left: -32px;
+        transform-origin: bottom center;
+      }
+
+      .playing-card {
+        width: 51px;
+        height: 76px;
+      }
+
+      .playing-card .corner {
+        top: 5px;
+        left: 5px;
+        font-size: 17px;
+      }
+
+      .playing-card .corner-suit {
+        margin-top: 4px;
+        font-size: 14px;
+      }
+
+      .playing-card .large-suit {
+        right: 6px;
+        bottom: 2px;
+        font-size: 32px;
+      }
+
+      .playing-card.joker .corner {
+        top: 6px;
+        font-size: 11px;
+      }
+
+      .playing-card.joker .large-suit {
+        right: 4px;
+        bottom: 6px;
+        font-size: 23px;
+      }
+
+      .played-card {
+        width: 42px;
+        height: 62px;
+        margin-left: -28px;
+      }
+
+      .played-card .rank {
+        font-size: 17px;
+      }
+
+      .played-card .suit {
+        font-size: 14px;
+      }
+
+      .last-play {
+        padding-inline: 24px;
+      }
+
+      .play-caption {
+        right: 0;
+      }
+
+      .bidding {
+        top: 295px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .scoreboard {
+        gap: 3px;
+      }
+
+      .score-item:first-child {
+        display: none;
+      }
+
+      .seat-meta {
+        display: none;
+      }
+
+      .seat-left {
+        left: 12px;
+      }
+
+      .seat-right {
+        right: 12px;
+      }
+
+      .opponent-cards.left {
+        left: 18px;
+      }
+
+      .opponent-cards.right {
+        right: 18px;
+      }
+
+      .center-stage {
+        top: 136px;
+      }
+
+      .round-status {
+        font-size: 14px;
+      }
+
+      .card-button {
+        margin-left: -36px;
+      }
+
+      .my-seat {
+        bottom: 190px;
+      }
+
+      .my-seat .seat-name {
+        font-size: 13px;
+      }
+
+      .action-panel {
+        left: 12px;
+        justify-content: flex-start;
+      }
+
+      .action-panel .danger {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-shell" aria-label="欢乐斗地主游戏">
+    <header class="game-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">斗</div>
+        <div>
+          <h1>欢乐斗地主</h1>
+          <p class="brand-subtitle">三人单机牌局</p>
+        </div>
+      </div>
+      <div class="scoreboard" aria-label="本局信息">
+        <div class="score-item">
+          <span class="score-label">底分</span>
+          <span class="score-value" id="base-score">1</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">倍数</span>
+          <span class="score-value" id="multiplier">1</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">积分</span>
+          <span class="score-value" id="score">0</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="table" aria-label="牌桌">
+      <div class="seat seat-left" id="seat-left">
+        <div class="avatar">阿<span class="turn-ring"></span></div>
+        <div>
+          <div class="seat-name">阿良 <span class="role-tag" id="role-left"></span></div>
+          <div class="seat-meta"><span id="left-count">17</span> 张牌</div>
+        </div>
+      </div>
+      <div class="opponent-cards left" id="left-cards" aria-label="阿良的手牌"></div>
+
+      <div class="seat seat-right" id="seat-right">
+        <div class="avatar">小<span class="turn-ring"></span></div>
+        <div>
+          <div class="seat-name">小满 <span class="role-tag" id="role-right"></span></div>
+          <div class="seat-meta"><span id="right-count">17</span> 张牌</div>
+        </div>
+      </div>
+      <div class="opponent-cards right" id="right-cards" aria-label="小满的手牌"></div>
+
+      <div class="bottom-cards" id="bottom-cards" aria-label="底牌"></div>
+
+      <div class="center-stage">
+        <div class="round-status" id="status" aria-live="polite"></div>
+        <div class="play-zone">
+          <div class="last-play" id="last-play" aria-label="当前牌"></div>
+          <div class="play-caption" id="play-caption"></div>
+        </div>
+        <div class="trick-notice" id="trick-notice"></div>
+      </div>
+
+      <div class="seat my-seat seat-me" id="seat-me">
+        <div class="avatar">我<span class="turn-ring"></span></div>
+        <div>
+          <div class="seat-name">我 <span class="role-tag" id="role-me"></span></div>
+          <div class="seat-meta"><span id="me-count">17</span> 张牌</div>
+        </div>
+      </div>
+
+      <div class="action-panel" aria-label="出牌操作">
+        <button type="button" id="hint-button">提示</button>
+        <button type="button" class="danger" id="clear-button">重选</button>
+        <button type="button" id="pass-button">不出</button>
+        <button type="button" class="primary" id="play-button">出牌</button>
+        <button type="button" class="new-game" id="new-game-button">新开局</button>
+      </div>
+
+      <div class="hand-area">
+        <div class="hand-label">我的手牌 <strong id="selected-count"></strong></div>
+        <div class="hand" id="my-hand" aria-label="我的手牌"></div>
+      </div>
+
+      <section class="bidding" id="bidding" aria-label="叫地主">
+        <h2 class="bidding-title">轮到你叫地主</h2>
+        <p class="bidding-copy">底牌归地主，叫牌后本局倍数为 1。</p>
+        <div class="bid-actions">
+          <button type="button" id="pass-bid-button">不叫</button>
+          <button type="button" id="call-bid-button">叫地主</button>
+        </div>
+      </section>
+
+      <section class="result-dialog" id="result-dialog" aria-live="polite" aria-label="本局结果">
+        <h2 class="result-title" id="result-title"></h2>
+        <p class="result-copy" id="result-copy"></p>
+        <button type="button" id="result-new-game">再来一局</button>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const PLAYER = "me";
+      const LEFT = "left";
+      const RIGHT = "right";
+      const ORDER = [PLAYER, LEFT, RIGHT];
+      const PLAYER_NAMES = {
+        [PLAYER]: "我",
+        [LEFT]: "阿良",
+        [RIGHT]: "小满"
+      };
+      const SUITS = [
+        { symbol: "♠", name: "spade", red: false },
+        { symbol: "♥", name: "heart", red: true },
+        { symbol: "♣", name: "club", red: false },
+        { symbol: "♦", name: "diamond", red: true }
+      ];
+      const RANKS = [
+        { value: 3, label: "3" },
+        { value: 4, label: "4" },
+        { value: 5, label: "5" },
+        { value: 6, label: "6" },
+        { value: 7, label: "7" },
+        { value: 8, label: "8" },
+        { value: 9, label: "9" },
+        { value: 10, label: "10" },
+        { value: 11, label: "J" },
+        { value: 12, label: "Q" },
+        { value: 13, label: "K" },
+        { value: 14, label: "A" },
+        { value: 15, label: "2" }
+      ];
+      const TYPE_NAMES = {
+        single: "单张",
+        pair: "对子",
+        triple: "三张",
+        tripleSingle: "三带一",
+        triplePair: "三带二",
+        straight: "顺子",
+        pairStraight: "连对",
+        airplane: "飞机",
+        airplaneSingle: "飞机带单",
+        airplanePair: "飞机带对",
+        fourTwoSingles: "四带二",
+        fourTwoPairs: "四带两对",
+        bomb: "炸弹",
+        rocket: "王炸"
+      };
+
+      const ui = {
+        status: document.getElementById("status"),
+        baseScore: document.getElementById("base-score"),
+        multiplier: document.getElementById("multiplier"),
+        score: document.getElementById("score"),
+        seatMe: document.getElementById("seat-me"),
+        seatLeft: document.getElementById("seat-left"),
+        seatRight: document.getElementById("seat-right"),
+        roles: {
+          [PLAYER]: document.getElementById("role-me"),
+          [LEFT]: document.getElementById("role-left"),
+          [RIGHT]: document.getElementById("role-right")
+        },
+        counts: {
+          [PLAYER]: document.getElementById("me-count"),
+          [LEFT]: document.getElementById("left-count"),
+          [RIGHT]: document.getElementById("right-count")
+        },
+        opponentCards: {
+          [LEFT]: document.getElementById("left-cards"),
+          [RIGHT]: document.getElementById("right-cards")
+        },
+        bottomCards: document.getElementById("bottom-cards"),
+        lastPlay: document.getElementById("last-play"),
+        playCaption: document.getElementById("play-caption"),
+        trickNotice: document.getElementById("trick-notice"),
+        myHand: document.getElementById("my-hand"),
+        selectedCount: document.getElementById("selected-count"),
+        hintButton: document.getElementById("hint-button"),
+        clearButton: document.getElementById("clear-button"),
+        passButton: document.getElementById("pass-button"),
+        playButton: document.getElementById("play-button"),
+        newGameButton: document.getElementById("new-game-button"),
+        bidding: document.getElementById("bidding"),
+        passBidButton: document.getElementById("pass-bid-button"),
+        callBidButton: document.getElementById("call-bid-button"),
+        resultDialog: document.getElementById("result-dialog"),
+        resultTitle: document.getElementById("result-title"),
+        resultCopy: document.getElementById("result-copy"),
+        resultNewGame: document.getElementById("result-new-game")
+      };
+
+      let state = {};
+      let timer = 0;
+
+      function readStoredScore() {
+        try {
+          return Number(window.localStorage.getItem("ddz-score") || 0);
+        } catch (error) {
+          return 0;
+        }
+      }
+
+      function storeScore(score) {
+        try {
+          window.localStorage.setItem("ddz-score", String(score));
+        } catch (error) {
+          // The game still works when browser storage is unavailable.
+        }
+      }
+
+      function createDeck() {
+        const deck = [];
+        let id = 0;
+        RANKS.forEach((rank) => {
+          SUITS.forEach((suit) => {
+            deck.push({
+              id: `c${id++}`,
+              value: rank.value,
+              label: rank.label,
+              suit: suit.symbol,
+              red: suit.red,
+              joker: null
+            });
+          });
+        });
+        deck.push({ id: `c${id++}`, value: 16, label: "小王", suit: "J", red: false, joker: "small" });
+        deck.push({ id: `c${id++}`, value: 17, label: "大王", suit: "J", red: true, joker: "big" });
+        return deck;
+      }
+
+      function shuffle(cards) {
+        const copy = [...cards];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function sortCards(cards) {
+        return [...cards].sort((a, b) => {
+          if (b.value !== a.value) return b.value - a.value;
+          return a.suit.localeCompare(b.suit);
+        });
+      }
+
+      function startNewGame() {
+        window.clearTimeout(timer);
+        const deck = shuffle(createDeck());
+        state = {
+          hands: {
+            [PLAYER]: sortCards(deck.slice(0, 17)),
+            [LEFT]: sortCards(deck.slice(17, 34)),
+            [RIGHT]: sortCards(deck.slice(34, 51))
+          },
+          bottom: deck.slice(51),
+          phase: "bidding",
+          landlord: null,
+          turn: PLAYER,
+          lastPlay: null,
+          passCount: 0,
+          selected: new Set(),
+          message: "轮到你决定是否叫地主",
+          notice: "",
+          score: readStoredScore(),
+          multiplier: 1,
+          baseScore: 1,
+          winner: null
+        };
+        render();
+      }
+
+      function nextPlayer(player) {
+        return ORDER[(ORDER.indexOf(player) + 1) % ORDER.length];
+      }
+
+      function playerCards(player) {
+        return state.hands[player];
+      }
+
+      function playerRole(player) {
+        return state.landlord === player ? "地主" : state.landlord ? "农民" : "";
+      }
+
+      function cardMarkup(card, className = "playing-card") {
+        if (card.joker) {
+          return `<span class="${className} joker ${card.joker}">
+            <span class="corner">${card.label}</span>
+            <span class="large-suit">J</span>
+          </span>`;
+        }
+        return `<span class="${className}${card.red ? " is-red" : ""}">
+          <span class="corner">${card.label}<span class="corner-suit">${card.suit}</span></span>
+          <span class="large-suit">${card.suit}</span>
+        </span>`;
+      }
+
+      function smallPlayedMarkup(card) {
+        if (card.joker) {
+          return `<span class="played-card joker ${card.joker}">
+            <span class="rank">${card.label}</span><span class="suit">J</span>
+          </span>`;
+        }
+        return `<span class="played-card${card.red ? " is-red" : ""}">
+          <span class="rank">${card.label}</span><span class="suit">${card.suit}</span>
+        </span>`;
+      }
+
+      function renderOpponentCards(player) {
+        const count = playerCards(player).length;
+        ui.opponentCards[player].innerHTML = Array.from(
+          { length: Math.min(count, 17) },
+          () => '<span class="card-back" aria-hidden="true"></span>'
+        ).join("");
+      }
+
+      function renderBottom() {
+        const reveal = Boolean(state.landlord);
+        ui.bottomCards.innerHTML = state.bottom.map((card) => `
+          <span class="bottom-card-wrap${reveal ? "" : " is-hidden"}">
+            ${reveal ? cardMarkup(card) : ""}
+          </span>
+        `).join("");
+      }
+
+      function renderHand() {
+        const playable = state.phase === "playing" && state.turn === PLAYER;
+        const hand = playerCards(PLAYER);
+        ui.myHand.innerHTML = hand.map((card) => {
+          const selected = state.selected.has(card.id);
+          return `<button type="button" class="card-button${selected ? " is-selected" : ""}" data-card-id="${card.id}"
+              aria-pressed="${selected}" aria-label="${card.label}${card.joker ? "" : card.suit}" ${playable ? "" : "disabled"}>
+              ${cardMarkup(card)}
+            </button>`;
+        }).join("");
+        ui.selectedCount.textContent = state.selected.size ? `已选 ${state.selected.size} 张` : "";
+      }
+
+      function renderLastPlay() {
+        if (!state.lastPlay) {
+          ui.lastPlay.innerHTML = "";
+          ui.playCaption.textContent = "";
+          return;
+        }
+        const play = state.lastPlay;
+        ui.lastPlay.innerHTML = play.cards.map(smallPlayedMarkup).join("");
+        ui.playCaption.textContent = `${PLAYER_NAMES[play.player]} · ${TYPE_NAMES[play.info.type]}`;
+      }
+
+      function render() {
+        ui.status.textContent = state.message;
+        ui.status.classList.toggle("is-alert", state.phase === "bidding" || state.phase === "over");
+        ui.trickNotice.textContent = state.notice;
+        ui.baseScore.textContent = state.baseScore;
+        ui.multiplier.textContent = state.multiplier;
+        ui.score.textContent = state.score > 0 ? `+${state.score}` : state.score;
+
+        [PLAYER, LEFT, RIGHT].forEach((player) => {
+          ui.counts[player].textContent = playerCards(player).length;
+          ui.roles[player].textContent = playerRole(player);
+          const seat = player === PLAYER ? ui.seatMe : player === LEFT ? ui.seatLeft : ui.seatRight;
+          seat.classList.toggle("is-turn", state.phase === "playing" && state.turn === player);
+        });
+
+        renderOpponentCards(LEFT);
+        renderOpponentCards(RIGHT);
+        renderBottom();
+        renderHand();
+        renderLastPlay();
+
+        const isMyTurn = state.phase === "playing" && state.turn === PLAYER;
+        const mayPass = isMyTurn && state.lastPlay && state.lastPlay.player !== PLAYER;
+        ui.hintButton.disabled = !isMyTurn;
+        ui.clearButton.disabled = !isMyTurn || state.selected.size === 0;
+        ui.passButton.disabled = !mayPass;
+        ui.playButton.disabled = !isMyTurn || state.selected.size === 0;
+        ui.bidding.classList.toggle("is-visible", state.phase === "bidding");
+        ui.resultDialog.classList.toggle("is-visible", state.phase === "over");
+      }
+
+      function groupByValue(cards) {
+        const groups = new Map();
+        cards.forEach((card) => {
+          if (!groups.has(card.value)) groups.set(card.value, []);
+          groups.get(card.value).push(card);
+        });
+        groups.forEach((group) => group.sort((a, b) => a.id.localeCompare(b.id)));
+        return groups;
+      }
+
+      function isConsecutive(values) {
+        const sorted = [...values].sort((a, b) => a - b);
+        return sorted.every((value, index) => index === 0 || value === sorted[index - 1] + 1);
+      }
+
+      function findAirplaneInfo(groups, total, wingKind) {
+        const maxCore = Math.floor(total / (wingKind === "pair" ? 5 : wingKind === "single" ? 4 : 3));
+        const neededTotal = (n) => n * (wingKind === "pair" ? 5 : wingKind === "single" ? 4 : 3);
+        if (total !== neededTotal(maxCore) || maxCore < 2) return null;
+        const triples = [...groups.entries()]
+          .filter(([, cards]) => cards.length === 3)
+          .map(([value]) => Number(value))
+          .filter((value) => value <= 14)
+          .sort((a, b) => a - b);
+
+        for (let start = 0; start <= triples.length - maxCore; start += 1) {
+          const core = triples.slice(start, start + maxCore);
+          if (!isConsecutive(core)) continue;
+          const coreSet = new Set(core);
+          const rest = [...groups.entries()].filter(([value]) => !coreSet.has(Number(value)));
+          if (wingKind === null && rest.length === 0) {
+            return { type: "airplane", main: core[core.length - 1], length: maxCore };
+          }
+          if (wingKind === "single" && rest.reduce((sum, [, cards]) => sum + cards.length, 0) === maxCore) {
+            return { type: "airplaneSingle", main: core[core.length - 1], length: maxCore };
+          }
+          if (wingKind === "pair" && rest.length === maxCore && rest.every(([, cards]) => cards.length === 2)) {
+            return { type: "airplanePair", main: core[core.length - 1], length: maxCore };
+          }
+        }
+        return null;
+      }
+
+      function classify(cards) {
+        const total = cards.length;
+        if (!total) return null;
+        const groups = groupByValue(cards);
+        const values = [...groups.keys()].map(Number).sort((a, b) => a - b);
+        const counts = [...groups.values()].map((group) => group.length).sort((a, b) => b - a);
+
+        if (total === 2 && groups.has(16) && groups.has(17)) {
+          return { type: "rocket", main: 17, length: 1 };
+        }
+        if (total === 4 && counts[0] === 4) {
+          return { type: "bomb", main: values.find((value) => groups.get(value).length === 4), length: 1 };
+        }
+        if (total === 1) return { type: "single", main: values[0], length: 1 };
+        if (total === 2 && counts.length === 1 && counts[0] === 2) return { type: "pair", main: values[0], length: 1 };
+        if (total === 3 && counts.length === 1 && counts[0] === 3) return { type: "triple", main: values[0], length: 1 };
+        if (total === 4 && counts[0] === 3 && counts[1] === 1) {
+          return { type: "tripleSingle", main: values.find((value) => groups.get(value).length === 3), length: 1 };
+        }
+        if (total === 5 && counts[0] === 3 && counts[1] === 2) {
+          return { type: "triplePair", main: values.find((value) => groups.get(value).length === 3), length: 1 };
+        }
+        if (total === 6 && counts[0] === 4 && counts.slice(1).reduce((sum, value) => sum + value, 0) === 2) {
+          return { type: "fourTwoSingles", main: values.find((value) => groups.get(value).length === 4), length: 1 };
+        }
+        if (total === 8 && counts[0] === 4 && counts.slice(1).every((count) => count === 2) && counts.length === 3) {
+          return { type: "fourTwoPairs", main: values.find((value) => groups.get(value).length === 4), length: 1 };
+        }
+        if (total >= 5 && counts.every((count) => count === 1) && values[values.length - 1] <= 14 && isConsecutive(values)) {
+          return { type: "straight", main: values[values.length - 1], length: total };
+        }
+        if (total >= 6 && total % 2 === 0 && counts.every((count) => count === 2) && values[values.length - 1] <= 14 && isConsecutive(values)) {
+          return { type: "pairStraight", main: values[values.length - 1], length: values.length };
+        }
+
+        const purePlane = findAirplaneInfo(groups, total, null);
+        if (purePlane) return purePlane;
+        const planeSingle = findAirplaneInfo(groups, total, "single");
+        if (planeSingle) return planeSingle;
+        const planePair = findAirplaneInfo(groups, total, "pair");
+        if (planePair) return planePair;
+        return null;
+      }
+
+      function canBeat(candidate, target) {
+        if (!candidate) return false;
+        if (!target) return true;
+        if (candidate.type === "rocket") return target.type !== "rocket";
+        if (target.type === "rocket") return false;
+        if (candidate.type === "bomb" && target.type !== "bomb") return true;
+        if (candidate.type !== target.type) return false;
+        if (candidate.length !== target.length) return false;
+        return candidate.main > target.main;
+      }
+
+      function uniquePush(plays, seen, cards) {
+        const info = classify(cards);
+        if (!info) return;
+        const key = cards.map((card) => card.id).sort().join("|");
+        if (!seen.has(key)) {
+          seen.add(key);
+          plays.push({ cards: sortCards(cards), info });
+        }
+      }
+
+      function combinations(items, count, limit = 260) {
+        const output = [];
+        function walk(start, picked) {
+          if (output.length >= limit) return;
+          if (picked.length === count) {
+            output.push([...picked]);
+            return;
+          }
+          for (let index = start; index <= items.length - (count - picked.length); index += 1) {
+            picked.push(items[index]);
+            walk(index + 1, picked);
+            picked.pop();
+            if (output.length >= limit) return;
+          }
+        }
+        walk(0, []);
+        return output;
+      }
+
+      function contiguousSegments(values, minLength) {
+        const segments = [];
+        let run = [];
+        values.forEach((value, index) => {
+          if (index === 0 || value === values[index - 1] + 1) {
+            run.push(value);
+          } else {
+            run = [value];
+          }
+          if (run.length >= minLength) {
+            for (let length = minLength; length <= run.length; length += 1) {
+              segments.push(run.slice(run.length - length));
+            }
+          }
+        });
+        return segments;
+      }
+
+      function getMoves(hand) {
+        const groups = groupByValue(hand);
+        const values = [...groups.keys()].map(Number).sort((a, b) => a - b);
+        const plays = [];
+        const seen = new Set();
+        const normalValues = values.filter((value) => value <= 14);
+
+        hand.forEach((card) => uniquePush(plays, seen, [card]));
+        values.forEach((value) => {
+          const group = groups.get(value);
+          if (group.length >= 2) uniquePush(plays, seen, group.slice(0, 2));
+          if (group.length >= 3) uniquePush(plays, seen, group.slice(0, 3));
+          if (group.length === 4) uniquePush(plays, seen, group);
+        });
+        if (groups.has(16) && groups.has(17)) uniquePush(plays, seen, [groups.get(16)[0], groups.get(17)[0]]);
+
+        const tripleValues = values.filter((value) => groups.get(value).length >= 3);
+        tripleValues.forEach((tripleValue) => {
+          const triple = groups.get(tripleValue).slice(0, 3);
+          const otherCards = hand.filter((card) => card.value !== tripleValue);
+          otherCards.forEach((card) => uniquePush(plays, seen, [...triple, card]));
+          values.filter((value) => value !== tripleValue && groups.get(value).length >= 2)
+            .forEach((pairValue) => uniquePush(plays, seen, [...triple, ...groups.get(pairValue).slice(0, 2)]));
+        });
+
+        contiguousSegments(normalValues.filter((value) => groups.get(value).length >= 1), 5)
+          .forEach((segment) => uniquePush(plays, seen, segment.map((value) => groups.get(value)[0])));
+        contiguousSegments(normalValues.filter((value) => groups.get(value).length >= 2), 3)
+          .forEach((segment) => uniquePush(plays, seen, segment.flatMap((value) => groups.get(value).slice(0, 2))));
+
+        const planeSegments = contiguousSegments(normalValues.filter((value) => groups.get(value).length >= 3), 2);
+        planeSegments.forEach((segment) => {
+          const coreCards = segment.flatMap((value) => groups.get(value).slice(0, 3));
+          uniquePush(plays, seen, coreCards);
+
+          const coreSet = new Set(segment);
+          const wingCards = hand.filter((card) => !coreSet.has(card.value));
+          combinations(wingCards, segment.length, 80)
+            .forEach((wings) => uniquePush(plays, seen, [...coreCards, ...wings]));
+
+          const pairGroups = values
+            .filter((value) => !coreSet.has(value) && groups.get(value).length >= 2)
+            .map((value) => groups.get(value).slice(0, 2));
+          combinations(pairGroups, segment.length, 80)
+            .forEach((pairs) => uniquePush(plays, seen, [...coreCards, ...pairs.flat()]));
+        });
+
+        values.filter((value) => groups.get(value).length === 4).forEach((fourValue) => {
+          const four = groups.get(fourValue);
+          const others = hand.filter((card) => card.value !== fourValue);
+          combinations(others, 2, 180).forEach((wings) => uniquePush(plays, seen, [...four, ...wings]));
+          const pairs = values
+            .filter((value) => value !== fourValue && groups.get(value).length >= 2)
+            .map((value) => groups.get(value).slice(0, 2));
+          combinations(pairs, 2, 100).forEach((pairWings) => uniquePush(plays, seen, [...four, ...pairWings.flat()]));
+        });
+
+        return plays;
+      }
+
+      function compareMoveStrength(a, b) {
+        const aBomb = a.info.type === "bomb" || a.info.type === "rocket";
+        const bBomb = b.info.type === "bomb" || b.info.type === "rocket";
+        if (aBomb !== bBomb) return aBomb ? 1 : -1;
+        if (a.info.main !== b.info.main) return a.info.main - b.info.main;
+        if (a.cards.length !== b.cards.length) return a.cards.length - b.cards.length;
+        return a.info.type.localeCompare(b.info.type);
+      }
+
+      function hint() {
+        if (state.phase !== "playing" || state.turn !== PLAYER) return;
+        const target = state.lastPlay && state.lastPlay.player !== PLAYER ? state.lastPlay.info : null;
+        const candidates = getMoves(playerCards(PLAYER)).filter((move) => canBeat(move.info, target));
+        if (!candidates.length) {
+          state.notice = "没有能压过的牌，可以选择不出";
+          render();
+          return;
+        }
+        candidates.sort(compareMoveStrength);
+        state.selected = new Set(candidates[0].cards.map((card) => card.id));
+        state.notice = `提示：${TYPE_NAMES[candidates[0].info.type]}`;
+        render();
+      }
+
+      function clearSelection() {
+        if (state.phase === "playing" && state.turn === PLAYER) {
+          state.selected.clear();
+          state.notice = "";
+          render();
+        }
+      }
+
+      function announcePlay(player, play) {
+        const hand = playerCards(player);
+        const ids = new Set(play.cards.map((card) => card.id));
+        state.hands[player] = hand.filter((card) => !ids.has(card.id));
+        state.lastPlay = {
+          player,
+          cards: sortCards(play.cards),
+          info: play.info
+        };
+        state.passCount = 0;
+        state.notice = "";
+        if (play.info.type === "bomb" || play.info.type === "rocket") {
+          state.multiplier *= 2;
+          state.notice = `${play.info.type === "rocket" ? "王炸" : "炸弹"}！倍数翻倍`;
+        }
+        if (state.hands[player].length === 0) {
+          finishRound(player);
+          return;
+        }
+        state.turn = nextPlayer(player);
+        state.message = `${PLAYER_NAMES[player]}出 ${TYPE_NAMES[play.info.type]}，轮到${PLAYER_NAMES[state.turn]}`;
+        render();
+        scheduleAi();
+      }
+
+      function playSelected() {
+        if (state.phase !== "playing" || state.turn !== PLAYER || !state.selected.size) return;
+        const cards = playerCards(PLAYER).filter((card) => state.selected.has(card.id));
+        const info = classify(cards);
+        if (!info) {
+          state.notice = "这组牌不符合斗地主牌型";
+          render();
+          return;
+        }
+        const target = state.lastPlay && state.lastPlay.player !== PLAYER ? state.lastPlay.info : null;
+        if (!canBeat(info, target)) {
+          state.notice = target ? "这组牌压不过当前牌" : "请重新选择";
+          render();
+          return;
+        }
+        state.selected.clear();
+        announcePlay(PLAYER, { cards, info });
+      }
+
+      function passTurn(player) {
+        if (!state.lastPlay || state.lastPlay.player === player) return;
+        state.passCount += 1;
+        const passedName = PLAYER_NAMES[player];
+        if (state.passCount >= 2) {
+          const leader = state.lastPlay.player;
+          state.lastPlay = null;
+          state.passCount = 0;
+          state.turn = leader;
+          state.notice = `${passedName}不要，重新由${PLAYER_NAMES[leader]}出牌`;
+          state.message = `本轮结束，轮到${PLAYER_NAMES[leader]}自由出牌`;
+        } else {
+          state.turn = nextPlayer(player);
+          state.notice = `${passedName}不要`;
+          state.message = `${passedName}不出，轮到${PLAYER_NAMES[state.turn]}`;
+        }
+        render();
+        scheduleAi();
+      }
+
+      function passSelected() {
+        if (state.phase === "playing" && state.turn === PLAYER && state.lastPlay && state.lastPlay.player !== PLAYER) {
+          state.selected.clear();
+          passTurn(PLAYER);
+        }
+      }
+
+      function chooseAiMove(player) {
+        const target = state.lastPlay && state.lastPlay.player !== player ? state.lastPlay.info : null;
+        let moves = getMoves(playerCards(player)).filter((move) => canBeat(move.info, target));
+        if (!moves.length) return null;
+
+        const nonBombs = moves.filter((move) => move.info.type !== "bomb" && move.info.type !== "rocket");
+        if (nonBombs.length) moves = nonBombs;
+        moves.sort(compareMoveStrength);
+
+        if (!target) {
+          const single = moves.filter((move) => move.info.type === "single");
+          if (single.length) return single[0];
+        }
+        return moves[0];
+      }
+
+      function scheduleAi() {
+        window.clearTimeout(timer);
+        if (state.phase !== "playing" || state.turn === PLAYER) return;
+        const player = state.turn;
+        timer = window.setTimeout(() => {
+          if (state.phase !== "playing" || state.turn !== player) return;
+          const move = chooseAiMove(player);
+          if (move) {
+            announcePlay(player, move);
+          } else {
+            passTurn(player);
+          }
+        }, 760);
+      }
+
+      function beginPlaying(landlord) {
+        state.phase = "playing";
+        state.landlord = landlord;
+        state.hands[landlord] = sortCards([...state.hands[landlord], ...state.bottom]);
+        state.turn = landlord;
+        state.selected.clear();
+        state.message = `${PLAYER_NAMES[landlord]}是地主，${landlord === PLAYER ? "由你先出牌" : "由对方先出牌"}`;
+        state.notice = "";
+        render();
+        scheduleAi();
+      }
+
+      function callLandlord() {
+        if (state.phase === "bidding") beginPlaying(PLAYER);
+      }
+
+      function passLandlord() {
+        if (state.phase !== "bidding") return;
+        const leftStrength = handStrength(state.hands[LEFT]);
+        const rightStrength = handStrength(state.hands[RIGHT]);
+        const landlord = leftStrength >= rightStrength ? LEFT : RIGHT;
+        beginPlaying(landlord);
+      }
+
+      function handStrength(cards) {
+        const groups = groupByValue(cards);
+        let strength = cards.reduce((sum, card) => sum + card.value, 0);
+        groups.forEach((group) => {
+          if (group.length === 4) strength += 32;
+          else if (group.length === 3) strength += 13;
+          else if (group.length === 2) strength += 3;
+        });
+        if (groups.has(16) && groups.has(17)) strength += 35;
+        return strength;
+      }
+
+      function finishRound(winner) {
+        state.phase = "over";
+        state.winner = winner;
+        const landlordWon = winner === state.landlord;
+        const points = state.baseScore * state.multiplier;
+        const delta = winner === PLAYER ? (landlordWon ? points * 2 : points) : (state.landlord === PLAYER ? -points * 2 : -points);
+        state.score += delta;
+        storeScore(state.score);
+        const title = winner === PLAYER ? "本局胜利" : "本局惜败";
+        const side = landlordWon ? "地主获胜" : "农民获胜";
+        ui.resultTitle.textContent = title;
+        ui.resultCopy.textContent = `${side} · 本局 ${state.multiplier} 倍 · ${delta >= 0 ? "+" : ""}${delta} 积分`;
+        state.message = `${PLAYER_NAMES[winner]}率先出完手牌，${side}`;
+        state.notice = "";
+        render();
+      }
+
+      function toggleCard(cardId) {
+        if (state.phase !== "playing" || state.turn !== PLAYER) return;
+        if (state.selected.has(cardId)) state.selected.delete(cardId);
+        else state.selected.add(cardId);
+        state.notice = "";
+        render();
+      }
+
+      ui.myHand.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-card-id]");
+        if (button) toggleCard(button.dataset.cardId);
+      });
+      ui.hintButton.addEventListener("click", hint);
+      ui.clearButton.addEventListener("click", clearSelection);
+      ui.passButton.addEventListener("click", passSelected);
+      ui.playButton.addEventListener("click", playSelected);
+      ui.newGameButton.addEventListener("click", startNewGame);
+      ui.passBidButton.addEventListener("click", passLandlord);
+      ui.callBidButton.addEventListener("click", callLandlord);
+      ui.resultNewGame.addEventListener("click", startNewGame);
+
+      startNewGame();
+    })();
+  </script>
+</body>
+</html>
